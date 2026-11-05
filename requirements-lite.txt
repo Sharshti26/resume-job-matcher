@@ -1,0 +1,12 @@
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+python-dotenv
+pdfplumber
+python-docx
+scikit-learn
+numpy
+google-generativeai
+reportlab
+gunicorn
