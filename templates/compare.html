@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Compare Resumes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Before / After Comparison</h1>
+        <p class="subtitle">Pick two checks from your history to compare scores.</p>
+
+        <form method="POST">
+            <label for="entry_a">First Check (before / purana)</label>
+            <select name="entry_a" id="entry_a" required>
+                {% for h in history %}
+                    <option value="{{ h.id }}" {% if entry_a and entry_a.id == h.id %}selected{% endif %}>{{ h.resume_filename }} — {{ h.match_score }}% ({{ h.created_at.strftime('%d %b') }})</option>
+                {% endfor %}
+            </select>
+
+            <label for="entry_b">Second Check (after / naya)</label>
+            <select name="entry_b" id="entry_b" required>
+                {% for h in history %}
+                    <option value="{{ h.id }}" {% if entry_b and entry_b.id == h.id %}selected{% endif %}>{{ h.resume_filename }} — {{ h.match_score }}% ({{ h.created_at.strftime('%d %b') }})</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Compare</button>
+        </form>
+
+        {% if entry_a and entry_b %}
+            <h3>Result</h3>
+            <canvas id="compareChart" height="120"></canvas>
+            {% set diff = entry_b.match_score - entry_a.match_score %}
+            {% if diff > 0 %}
+                <p class="score-box" style="margin-top:16px; color:var(--emerald); font-weight:600;">Score improved by {{ diff | round(2) }}%! 🎉</p>
+            {% elif diff < 0 %}
+                <p class="error">Score dropped by {{ (diff * -1) | round(2) }}%.</p>
+            {% else %}
+                <p class="subtitle">No change in score.</p>
+            {% endif %}
+
+            <script>
+                new Chart(document.getElementById('compareChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['{{ entry_a.resume_filename }}', '{{ entry_b.resume_filename }}'],
+                        datasets: [{
+                            label: 'Match Score (%)',
+                            data: [{{ entry_a.match_score }}, {{ entry_b.match_score }}],
+                            backgroundColor: ['#8C93A3', '#0EA87A']
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true, max: 100 } }, plugins: { legend: { display: false } } }
+                });
+            </script>
+        {% endif %}
+    </div>
+</body>
+</html>

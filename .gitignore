@@ -1,0 +1,10 @@
+.venv/
+venv/
+.env
+.idea/
+uploads/
+instance/
+*.db
+__pycache__/
+*.pyc
+*.pdf

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Interview Questions</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('index') }}">New Check</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Interview Prep</h1>
+        <p class="subtitle">Likely questions for {{ entry.resume_filename }}, based on your resume and the job description.</p>
+
+        {% if questions %}
+            <div class="roadmap">
+                {% for q in questions %}
+                    <div class="roadmap-step">
+                        <div class="roadmap-marker">{{ loop.index }}</div>
+                        <div class="roadmap-content">
+                            <h3 style="margin-top:0;">{{ q.question }}</h3>
+                            <p style="margin:4px 0; font-size:13px; color:var(--emerald); font-weight:600;">Tip: {{ q.tip }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="error">Questions generate nahi ho paaye. Thodi der baad dobara try karo.</p>
+        {% endif %}
+
+        <p style="margin-top:20px;"><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+    </div>
+</body>
+</html>

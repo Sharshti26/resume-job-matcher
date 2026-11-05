@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Match Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('index') }}">New Check</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Match Result</h1>
+
+        <div class="score-box">
+            {% if match_score >= 70 %}
+                <div class="score-circle score-high">{{ match_score }}%</div>
+            {% elif match_score >= 40 %}
+                <div class="score-circle score-mid">{{ match_score }}%</div>
+            {% else %}
+                <div class="score-circle score-low">{{ match_score }}%</div>
+            {% endif %}
+            <p class="subtitle" style="margin:4px 0 0;">Match Score</p>
+        </div>
+
+        <h3>Strengths</h3>
+        <ul>
+            {% for item in feedback.strengths %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Missing Skills</h3>
+        <ul>
+            {% for item in feedback.missing_skills %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+        <h3>Suggestions</h3>
+        <ul>
+            {% for item in feedback.suggestions %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+        <div style="margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{{ url_for('chat', match_id=match_id) }}"><button type="button">💬 Chat About This</button></a>
+            <a href="{{ url_for('roadmap', match_id=match_id) }}"><button type="button" style="background:var(--amber);">🗺️ Skill Roadmap</button></a>
+            <a href="{{ url_for('interview', match_id=match_id) }}"><button type="button" style="background:#6C5CE7;">🎤 Interview Questions</button></a>
+            <a href="{{ url_for('download_pdf', match_id=match_id) }}"><button type="button" style="background:#D63031;">📄 Download PDF</button></a>
+            <a href="{{ url_for('scorecard', match_id=match_id) }}"><button type="button" style="background:var(--navy);">🏆 Share Score Card</button></a>
+        </div>
+
+        <p style="margin-top:18px;"><a href="{{ url_for('index') }}">Check another resume</a> &nbsp;|&nbsp; <a href="{{ url_for('dashboard') }}">View dashboard</a></p>
+    </div>
+</body>
+</html>

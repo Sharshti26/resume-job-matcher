@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('index') }}">New Check</a>
+            <a href="{{ url_for('batch') }}">Batch Check</a>
+            <a href="{{ url_for('compare') }}">Compare</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>My Dashboard</h1>
+
+        <div class="score-box">
+            <p style="margin:0; font-size:14px; color:var(--ink-soft);">Total Checks</p>
+            <h2 style="margin:2px 0 14px;">{{ total_checks }}</h2>
+            <p style="margin:0; font-size:14px; color:var(--ink-soft);">Average Match Score</p>
+            <h2 style="margin:2px 0;">{{ avg_score }}%</h2>
+        </div>
+
+        <h3>Score Trend</h3>
+        <canvas id="scoreChart" height="100"></canvas>
+
+        <h3>Past History</h3>
+        {% if history %}
+            <ul class="history-list">
+                {% for item in history %}
+                    <li>
+                        <strong>{{ item.resume_filename }}</strong> &mdash; {{ item.match_score }}%
+                        <br><small>{{ item.created_at.strftime('%d %b %Y, %I:%M %p') }}</small>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="subtitle">No resumes checked yet. <a href="{{ url_for('index') }}">Check your first one</a>.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        const labels = [{% for item in history|reverse %}"{{ item.created_at.strftime('%d %b') }}",{% endfor %}];
+        const scores = [{% for item in history|reverse %}{{ item.match_score }},{% endfor %}];
+
+        new Chart(document.getElementById('scoreChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Match Score (%)',
+                    data: scores,
+                    borderColor: '#0EA87A',
+                    backgroundColor: 'rgba(14, 168, 122, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resume Score Card</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        </nav>
+    </div>
+
+    <div class="page">
+        <div id="card" class="scorecard">
+            <p class="scorecard-brand">ResumeMatch AI</p>
+            {% if entry.match_score >= 70 %}
+                <div class="score-circle score-high" style="width:130px;height:130px;font-size:30px;margin:14px auto;">{{ entry.match_score }}%</div>
+            {% elif entry.match_score >= 40 %}
+                <div class="score-circle score-mid" style="width:130px;height:130px;font-size:30px;margin:14px auto;">{{ entry.match_score }}%</div>
+            {% else %}
+                <div class="score-circle score-low" style="width:130px;height:130px;font-size:30px;margin:14px auto;">{{ entry.match_score }}%</div>
+            {% endif %}
+            <p class="scorecard-title">Resume Match Score</p>
+            <p class="scorecard-sub">{{ entry.resume_filename }} &nbsp;|&nbsp; {{ entry.created_at.strftime('%d %b %Y') }}</p>
+        </div>
+
+        <button onclick="downloadCard()" style="margin-top:20px;">Download as Image</button>
+        <p style="margin-top:10px;"><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+    </div>
+
+    <script>
+        function downloadCard() {
+            html2canvas(document.getElementById('card')).then(function(canvas) {
+                const link = document.createElement('a');
+                link.download = 'resume-score-card.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+    </script>
+</body>
+</html>

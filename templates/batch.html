@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Batch Resume Matching</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('index') }}">Single Check</a>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Batch Resume Matching</h1>
+        <p class="subtitle">Compare multiple resumes against one job description at once.</p>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form action="{{ url_for('batch') }}" method="POST" enctype="multipart/form-data">
+            <label for="resumes">Resumes (select multiple, PDF or DOCX)</label>
+            <input type="file" name="resumes" id="resumes" accept=".pdf,.docx" multiple required>
+
+            <label for="job_description">Job Description</label>
+            <textarea name="job_description" id="job_description" rows="8" placeholder="Paste the job description here..." required></textarea>
+
+            <button type="submit">Compare All</button>
+        </form>
+
+        {% if results %}
+            <h3>Results (best match first)</h3>
+            <ul class="history-list">
+                {% for r in results %}
+                    <li>
+                        <strong>{{ r.filename }}</strong> &mdash; {{ r.score }}%
+                        {% if r.missing_keywords %}
+                            <br><small>Missing: {{ r.missing_keywords | join(', ') }}</small>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</body>
+</html>

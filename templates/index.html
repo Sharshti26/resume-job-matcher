@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AI Resume-to-Job Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('batch') }}">Batch Check</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Check Your Resume Match</h1>
+        <p class="subtitle">Upload your resume and paste a job description to get a match score and AI feedback.</p>
+
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <form action="/match" method="POST" enctype="multipart/form-data">
+            <label for="resume">Resume (PDF or DOCX)</label>
+            <input type="file" name="resume" id="resume" accept=".pdf,.docx" required>
+
+            <label for="job_description">Job Description</label>
+            <textarea name="job_description" id="job_description" rows="8" placeholder="Paste the job description here..." required></textarea>
+
+            <button type="submit">Get Match Score</button>
+        </form>
+    </div>
+</body>
+</html>

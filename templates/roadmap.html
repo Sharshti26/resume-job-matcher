@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Skill Gap Roadmap</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Your Skill Gap Roadmap</h1>
+        <p class="subtitle">Based on {{ entry.resume_filename }} — in priority order.</p>
+
+        {% if roadmap %}
+            <div class="roadmap">
+                {% for item in roadmap %}
+                    <div class="roadmap-step">
+                        <div class="roadmap-marker">{{ loop.index }}</div>
+                        <div class="roadmap-content">
+                            <h3 style="margin-top:0;">{{ item.skill }}</h3>
+                            <p style="margin:4px 0; font-size:14px;">{{ item.why }}</p>
+                            <p style="margin:4px 0; font-size:13px; color:var(--emerald); font-weight:600;">{{ item.resource }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="error">Roadmap abhi generate nahi ho paaya (AI busy ho sakta hai). 1 minute baad page refresh karo.</p>
+        {% endif %}
+
+        <p style="margin-top:20px;"><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+    </div>
+</body>
+</html>

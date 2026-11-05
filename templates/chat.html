@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chat About Your Resume</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="navbar">
+        <span class="brand">ResumeMatch AI</span>
+        <nav>
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('index') }}">New Check</a>
+        </nav>
+    </div>
+
+    <div class="container">
+        <h1>Chat About {{ entry.resume_filename }}</h1>
+        <p class="subtitle">Ask follow-up questions about this resume and job description.</p>
+
+        <div class="chat-box">
+            {% if not chat_history %}
+                <p class="subtitle" style="margin:0;">Try asking: "How should I phrase my TCS internship bullet points?"</p>
+            {% endif %}
+            {% for turn in chat_history %}
+                {% if turn.role == "user" %}
+                    <div class="chat-bubble chat-user">{{ turn.text }}</div>
+                {% else %}
+                    <div class="chat-bubble chat-assistant">{{ turn.text }}</div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <form action="{{ url_for('chat', match_id=entry.id) }}" method="POST">
+            <textarea name="message" rows="2" placeholder="Type your question..." required></textarea>
+            <button type="submit">Send</button>
+        </form>
+
+        <p style="margin-top:18px;"><a href="{{ url_for('dashboard') }}">Back to dashboard</a></p>
+    </div>
+</body>
+</html>
