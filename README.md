@@ -1,3 +1,13 @@
+---
+title: ResumeMatch AI
+emoji: 📄
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # ResumeMatch AI - AI Resume-to-Job Matcher with Auto-Feedback
 
 A Flask web app that compares a resume with a job description, gives a match score, and uses a generative AI model (Google Gemini) to produce personalised feedback, a skill-gap roadmap, likely interview questions and an interactive resume chat.
