@@ -34,7 +34,16 @@ backup_model = genai.GenerativeModel("gemini-flash-latest")
 
 # Groq (pehli pasand): alag-alag models ke alag free quota hote hain
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GROQ_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+# Pasandida models (jo aapke account me available honge wahi use honge)
+GROQ_PREFERRED = [
+    "llama-3.3-70b-versatile",
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "llama-3.1-8b-instant",
+]
+# Chat ke kaam ke nahi (audio, safety, embedding wale) - inhe skip karte hain
+GROQ_SKIP_WORDS = ("whisper", "guard", "tts", "orpheus", "embed", "compound", "safeguard", "qwen")
+_groq_models_cache = None
 groq_client = Groq(api_key=GROQ_API_KEY) if (Groq and GROQ_API_KEY) else None
 
 BUSY_MESSAGE = "AI abhi busy hai. Kripya 1 minute ruk kar dobara try karo."
@@ -55,6 +64,36 @@ def _generate(llm, prompt):
     # retry=None: library ka auto-retry band (har retry quota me count hota hai)
     response = llm.generate_content(prompt, request_options={"retry": None, "timeout": 60})
     return response.text.strip()
+
+
+def _groq_models():
+    """
+    Aapke Groq account me jo chat models available hain unki list deta hai.
+    (Model ke naam time ke saath badalte/retire hote rehte hain, isliye
+    naam hard-code karne ki jagah Groq se pooch lete hain.)
+    Chahein to .env me GROQ_MODELS=model1,model2 likhkar khud bhi tay kar sakti hain.
+    """
+    global _groq_models_cache
+    if _groq_models_cache is not None:
+        return _groq_models_cache
+
+    manual = os.environ.get("GROQ_MODELS")
+    if manual:
+        models = [m.strip() for m in manual.split(",") if m.strip()]
+    else:
+        try:
+            available = [m.id for m in groq_client.models.list().data]
+        except Exception as e:
+            print("[AI DEBUG] Groq models ki list nahi mili:", type(e).__name__, str(e)[:150])
+            available = []
+        chat_models = [m for m in available if not any(w in m.lower() for w in GROQ_SKIP_WORDS)]
+        preferred = [m for m in GROQ_PREFERRED if m in chat_models]
+        others = [m for m in chat_models if m not in preferred]
+        models = (preferred + others)[:3]
+
+    print("[AI DEBUG] Groq models jo use honge:", models)
+    _groq_models_cache = models
+    return models
 
 
 def _generate_groq(model_name, prompt):
@@ -88,7 +127,7 @@ def _ask(prompt):
     """
     # 1) Groq pehle (agar key set hai)
     if groq_client:
-        for name in GROQ_MODELS:
+        for name in _groq_models():
             try:
                 return _generate_groq(name, prompt)
             except Exception as e:
