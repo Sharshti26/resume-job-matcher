@@ -84,13 +84,28 @@ def match():
     db.session.add(history_entry)
     db.session.commit()
 
+    # Post/Redirect/Get: result ko alag page (/result/<id>) par dikhate hain,
+    # taaki Back ya Refresh dabane par form dobara submit na ho
+    return redirect(url_for("result", match_id=history_entry.id))
+
+
+@app.route("/result/<int:match_id>")
+@login_required
+def result(match_id):
+    """Ek match ka result page - database se padhta hai, isliye Back/Refresh safe hai."""
+    entry = MatchHistory.query.filter_by(id=match_id, user_id=current_user.id).first_or_404()
+    feedback = {
+        "strengths": json.loads(entry.strengths or "[]"),
+        "missing_skills": json.loads(entry.missing_skills or "[]"),
+        "suggestions": json.loads(entry.suggestions or "[]"),
+    }
     return render_template(
         "result.html",
-        match_score=match_score,
+        match_score=entry.match_score,
         feedback=feedback,
-        missing_keywords=missing_keywords,
-        match_id=history_entry.id,
-        resume_filename=resume_file.filename,
+        missing_keywords=[],
+        match_id=entry.id,
+        resume_filename=entry.resume_filename,
     )
 
 
@@ -178,6 +193,8 @@ def chat(match_id):
             chat_history.append({"role": "user", "text": user_message})
             chat_history.append({"role": "assistant", "text": reply})
             session[session_key] = chat_history
+        # Post/Redirect/Get: refresh karne par sawaal dobara na jaye
+        return redirect(url_for("chat", match_id=match_id))
 
     return render_template("chat.html", entry=entry, chat_history=chat_history)
 
@@ -249,8 +266,7 @@ def compare():
     return render_template("compare.html", history=history, entry_a=entry_a, entry_b=entry_b)
 
 
-with app.app_context():
-    db.create_all()
-
 if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
     app.run(debug=True, use_reloader=False)
