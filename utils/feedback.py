@@ -1,7 +1,11 @@
 """
 utils/feedback.py
-Resume, JD, aur match score ke basis par LLM (Gemini) se
-auto-feedback generate karne ke liye.
+Resume, JD, aur match score ke basis par LLM se auto-feedback, chat, roadmap
+aur interview questions generate karne ke liye.
+
+AI providers (is order me try hote hain, ek fail ho to agla):
+1. Groq  (GROQ_API_KEY ho to) - llama-3.3-70b, phir llama-3.1-8b (fast, free)
+2. Gemini (GEMINI_API_KEY)    - flash-lite, phir flash
 """
 
 import os
@@ -10,6 +14,11 @@ import time
 from dotenv import load_dotenv
 import google.generativeai as genai
 from google.api_core import exceptions as google_exceptions
+
+try:
+    from groq import Groq
+except ImportError:  # groq package install na ho to bhi app chalta rahe
+    Groq = None
 
 # .env file se GEMINI_API_KEY load karta hai
 load_dotenv()
@@ -22,6 +31,11 @@ genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 model = genai.GenerativeModel("gemini-flash-lite-latest")
 # Backup model: main model busy ya limit khatam ho to ye try hota hai (alag quota)
 backup_model = genai.GenerativeModel("gemini-flash-latest")
+
+# Groq (pehli pasand): alag-alag models ke alag free quota hote hain
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_MODELS = ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"]
+groq_client = Groq(api_key=GROQ_API_KEY) if (Groq and GROQ_API_KEY) else None
 
 BUSY_MESSAGE = "AI abhi busy hai. Kripya 1 minute ruk kar dobara try karo."
 
@@ -43,6 +57,16 @@ def _generate(llm, prompt):
     return response.text.strip()
 
 
+def _generate_groq(model_name, prompt):
+    response = groq_client.chat.completions.create(
+        model=model_name,
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.4,
+        max_tokens=1200,
+    )
+    return response.choices[0].message.content.strip()
+
+
 def _extract_json(raw_text):
     """
     AI ke jawab me se JSON nikalta hai - chahe ```json fences ho ya
@@ -62,6 +86,15 @@ def _ask(prompt):
     - Free limit (429) ya model nahi mila: seedha agle model par
     - Sab fail ho jaye to AIBusyError (friendly message dikhta hai)
     """
+    # 1) Groq pehle (agar key set hai)
+    if groq_client:
+        for name in GROQ_MODELS:
+            try:
+                return _generate_groq(name, prompt)
+            except Exception as e:
+                print("[AI DEBUG] Groq", name, "fail:", type(e).__name__, str(e)[:150])
+
+    # 2) Phir Gemini
     for llm in (model, backup_model):
         for attempt in range(2):
             try:

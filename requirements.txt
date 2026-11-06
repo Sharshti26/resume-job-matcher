@@ -9,4 +9,5 @@ sentence-transformers
 scikit-learn
 numpy
 google-generativeai
+groq
 reportlab
