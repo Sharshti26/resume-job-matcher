@@ -6,7 +6,7 @@ match history, chat, scorecard, roadmap aur comparison - sab yahan se control ho
 
 import os
 import json
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file, send_from_directory
 from flask_login import LoginManager, login_required, current_user
 from dotenv import load_dotenv
 
@@ -266,7 +266,52 @@ def compare():
     return render_template("compare.html", history=history, entry_a=entry_a, entry_b=entry_b)
 
 
+# ---------------- PWA (phone me install hone wala app) ----------------
+
+PWA_HEAD = (
+    '<link rel="manifest" href="/manifest.json">'
+    '<meta name="theme-color" content="#16213E">'
+    '<meta name="mobile-web-app-capable" content="yes">'
+    '<meta name="apple-mobile-web-app-capable" content="yes">'
+    '<meta name="apple-mobile-web-app-title" content="ResumeMatch">'
+    '<link rel="apple-touch-icon" href="/static/icon-192.png">'
+)
+
+PWA_BODY = (
+    '<p style="text-align:center;font-size:12px;color:#5B6270;margin:24px 12px;">'
+    'Demo project. Please avoid uploading sensitive personal information.</p>'
+    '<script>if("serviceWorker" in navigator){window.addEventListener("load",function(){'
+    'navigator.serviceWorker.register("/sw.js");});}</script>'
+)
+
+
+@app.route("/manifest.json")
+def manifest():
+    return send_from_directory(app.static_folder, "manifest.json", mimetype="application/manifest+json")
+
+
+@app.route("/sw.js")
+def service_worker():
+    response = send_from_directory(app.static_folder, "sw.js", mimetype="application/javascript")
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
+@app.after_request
+def add_pwa_tags(response):
+    """Har HTML page me PWA ke tags apne aap jod deta hai (templates badalne ki zaroorat nahi)."""
+    if response.status_code == 200 and response.mimetype == "text/html" and not response.direct_passthrough:
+        html = response.get_data(as_text=True)
+        if "</head>" in html and "</body>" in html:
+            html = html.replace("</head>", PWA_HEAD + "</head>", 1)
+            html = html.replace("</body>", PWA_BODY + "</body>", 1)
+            response.set_data(html)
+    return response
+
+
+# Database tables: gunicorn (live server) par bhi bante hain
+with app.app_context():
+    db.create_all()
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, use_reloader=False)
