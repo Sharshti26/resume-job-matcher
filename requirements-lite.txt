@@ -5,9 +5,9 @@ werkzeug
 python-dotenv
 pdfplumber
 python-docx
-sentence-transformers
 scikit-learn
 numpy
 google-generativeai
 groq
 reportlab
+gunicorn
